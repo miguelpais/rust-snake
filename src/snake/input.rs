@@ -8,11 +8,9 @@ extern crate crossterm;
 use crossterm::event::{read, Event, KeyCode, poll};
 use std::time::Duration;
 
-pub fn input_loop(tx: Sender<Command>, lock: Arc<Mutex<i32>>, input_capturing_window_ms: u64) {
+pub fn input_loop(tx: Sender<Command>, input_capturing_window_ms: u64) {
     loop {
         {
-            let mut num = lock.lock().unwrap();
-            *num = 1;
             match capture_command() {
                 Some(new_command) => tx.send(new_command).unwrap(),
                 _ => ()

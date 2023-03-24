@@ -8,22 +8,20 @@ use crossterm::terminal::{disable_raw_mode};
 
 const SCREEN_HEIGTH:usize = 40;
 const SCREEN_WIDTH:usize = 80;
-const FRAMES_PER_SECOND: u64 = 20;
+const FRAMES_PER_SECOND: u64 = 10;
 const INPUT_CAPTURING_WINDOW_MS: u64 = 3;
 
 fn main() {
     let counter = Arc::new(Mutex::new(0));
 
-    let lock_input_loop = Arc::clone(&counter);
-    let lock_main_loop = Arc::clone(&counter);
     let (tx, rx) = mpsc::channel();
 
     thread::spawn(move || {
-        input::input_loop(tx, lock_input_loop, INPUT_CAPTURING_WINDOW_MS);
+        input::input_loop(tx, INPUT_CAPTURING_WINDOW_MS);
     });
 
     let mut screen = Screen::new(SCREEN_HEIGTH, SCREEN_WIDTH);
 
-    screen.main_loop(FRAMES_PER_SECOND, rx, lock_main_loop);
+    screen.main_loop(FRAMES_PER_SECOND, rx);
     disable_raw_mode();
 }

@@ -9,6 +9,15 @@ use super::body::SnakeBody;
 
 use ascii_canvas::style::DEFAULT;
 
+use crossterm::{
+    cursor::MoveTo,
+    style::{Color, SetBackgroundColor, SetForegroundColor},
+    terminal::{Clear, ClearType},
+    QueueableCommand,
+};
+use std::io;
+use std::io::Write;
+
 use std::thread::sleep;
 use std::time::Duration;
 
@@ -30,6 +39,11 @@ impl Screen {
             view.draw_horizontal_line(0, 0..width);
             view.draw_horizontal_line(height - 1, 0..width);
         }
+        let mut stdout = io::stdout();
+        stdout.queue(SetBackgroundColor(Color::Black)).unwrap();
+        stdout.queue(Clear(ClearType::All)).unwrap();
+        stdout.queue(SetBackgroundColor(Color::Black)).unwrap();
+        stdout.queue(SetForegroundColor(Color::White)).unwrap();
         Screen {
             canvas,
             width,
@@ -39,7 +53,7 @@ impl Screen {
         }
     }
 
-    pub fn main_loop(&mut self, frames_per_second: u64, rx: Receiver<Command>, lock: Arc<Mutex<i32>>) {
+    pub fn main_loop(&mut self, frames_per_second: u64, rx: Receiver<Command>) {
         let frame_ttl_ms = 1000 / frames_per_second;
 
         loop {
@@ -59,7 +73,7 @@ impl Screen {
             }
 
             self.update();
-            self.draw_screen(frame_ttl_ms, &lock);
+            self.draw_screen(frame_ttl_ms);
         }
     }
 
@@ -73,13 +87,16 @@ impl Screen {
 
     }
 
-    fn draw_screen(&self, frame_ttl_ms: u64, lock: &Arc<Mutex<i32>>) {
+    fn draw_screen(&self, frame_ttl_ms: u64) {
         sleep(Duration::from_millis(frame_ttl_ms));
-        let mut num = lock.lock().unwrap();
-        print!("{}[2J", 27 as char);
-        for row in self.canvas.to_strings() {
-            println!("{}", row);
+        let mut stdout = io::stdout();
+
+        for (rowIdx, row) in self.canvas.to_strings().iter().enumerate() {
+            for (columnIdx, symbol) in row.to_string().chars().enumerate() {
+                stdout.queue(MoveTo(columnIdx as u16, rowIdx as u16)).unwrap();
+                print!("{}", symbol);
+            }
         }
-        *num = 1;
+        stdout.flush().unwrap();
     }
 }

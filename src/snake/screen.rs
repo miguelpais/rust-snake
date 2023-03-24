@@ -6,6 +6,7 @@ use ascii_canvas::{{AsciiCanvas, AsciiView}};
 use super::direction::Direction;
 use super::command::Command;
 use super::body::SnakeBody;
+use super::body::Point;
 
 use ascii_canvas::style::DEFAULT;
 
@@ -43,7 +44,7 @@ impl Screen {
         stdout.queue(SetBackgroundColor(Color::Black)).unwrap();
         stdout.queue(Clear(ClearType::All)).unwrap();
         stdout.queue(SetBackgroundColor(Color::Black)).unwrap();
-        stdout.queue(SetForegroundColor(Color::White)).unwrap();
+        stdout.queue(SetForegroundColor(Color::DarkYellow)).unwrap();
         Screen {
             canvas,
             width,
@@ -78,7 +79,9 @@ impl Screen {
     }
 
     fn update(&mut self) {
-        self.canvas.write_char(self.snake.pos[self.snake.length-1].row, self.snake.pos[self.snake.length-1].column, ' ', DEFAULT);
+        let mut stdout = io::stdout();
+        stdout.queue(MoveTo(self.snake.pos[self.snake.length-1].column as u16, self.snake.pos[self.snake.length-1].row as u16)).unwrap();
+        print!(" ");
         self.snake.update_position(&self.direction);
 
         for idx in 0..self.snake.length {
@@ -93,10 +96,17 @@ impl Screen {
 
         for (rowIdx, row) in self.canvas.to_strings().iter().enumerate() {
             for (columnIdx, symbol) in row.to_string().chars().enumerate() {
-                stdout.queue(MoveTo(columnIdx as u16, rowIdx as u16)).unwrap();
-                print!("{}", symbol);
+                if rowIdx == 0 || rowIdx == self.height - 1 || columnIdx == 0 || columnIdx == self.width -1 {
+                    stdout.queue(MoveTo(columnIdx as u16, rowIdx as u16)).unwrap();
+                    print!("{}", symbol);
+                }
             }
         }
+        for pos in &self.snake.pos {
+            stdout.queue(MoveTo(pos.column as u16, pos.row as u16)).unwrap();
+            print!("{}", pos.direction.to_string());
+        }
+        stdout.queue(MoveTo(( self.width+1) as u16, (self.height + 1) as u16)).unwrap();
         stdout.flush().unwrap();
     }
 }

@@ -11,3 +11,9 @@ $ cargo run
 ```
 
 Play with the arrows keys.
+
+## Coming soon...
+
+- Food placement on the screen
+- Collision detection and snake growth
+- Show current score 

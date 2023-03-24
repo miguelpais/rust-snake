@@ -40,7 +40,8 @@ impl SnakeBody {
             Direction::UP => head_pos.row = previous_body_part_pos.row - 1,
             Direction::DOWN => head_pos.row = previous_body_part_pos.row + 1,
             Direction::LEFT => head_pos.column = previous_body_part_pos.column - 2,
-            Direction::RIGHT => head_pos.column = previous_body_part_pos.column + 2
+            Direction::RIGHT => head_pos.column = previous_body_part_pos.column + 2,
+            _ => (),
         }
         if head_pos.row == screen_height - 1 {
             head_pos.row = 1;
@@ -57,11 +58,11 @@ impl SnakeBody {
             let new_previous_pos = Point {
                 row: self.pos[idx].row,
                 column: self.pos[idx].column,
-                direction: self.pos[idx].direction.clone()
+                direction: Direction::NONE
             };
             self.pos[idx].column = previous_body_part_pos.column;
             self.pos[idx].row = previous_body_part_pos.row;
-            self.pos[idx].direction = previous_body_part_pos.direction;
+            self.pos[idx].direction = Direction::NONE;
             previous_body_part_pos = new_previous_pos;
         }
     }

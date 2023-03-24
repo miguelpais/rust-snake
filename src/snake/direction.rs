@@ -3,16 +3,18 @@ pub enum Direction {
     UP,
     DOWN,
     LEFT,
-    RIGHT
+    RIGHT,
+    NONE,
 }
 
 impl Direction {
     pub fn to_string(&self) -> char {
         match self {
-            Direction::UP => 'o',
-            Direction::DOWN => 'o',
-            Direction::LEFT => 'o',
-            Direction::RIGHT => 'o',
+            Direction::UP => '▲',
+            Direction::DOWN => '▼',
+            Direction::LEFT => '◀',
+            Direction::RIGHT => '▶',
+            Direction::NONE => '●'
         }
     }
 }

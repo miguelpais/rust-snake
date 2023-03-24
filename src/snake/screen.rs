@@ -34,61 +34,38 @@ impl Screen {
             canvas,
             width,
             height,
-            snake: SnakeBody::new(height / 2, width / 2),
+            snake: SnakeBody::new(height / 2, width / 2, height, width),
             direction: Direction::LEFT,
         }
     }
 
-    pub fn main_loop(&mut self, frames_per_second: u64, update_every_n_frames: u8, rx: Receiver<Command>, lock: Arc<Mutex<i32>>) {
+    pub fn main_loop(&mut self, frames_per_second: u64, rx: Receiver<Command>, lock: Arc<Mutex<i32>>) {
         let frame_ttl_ms = 1000 / frames_per_second;
-        let mut frame_counter = 0;
 
         loop {
             let new_command = rx.try_recv();
             match new_command {
                 Ok(command) => {
                     match command {
-                        Command::UP => {
-                            if self.direction != Direction::DOWN {
-                                self.direction = Direction::UP
-                            }
-                        },
-                        Command::DOWN => {
-                            if self.direction != Direction::UP {
-                                self.direction = Direction::DOWN
-                            }
-                        }
-                        Command::LEFT => {
-                            if self.direction != Direction::RIGHT {
-                                self.direction = Direction::LEFT
-                            }
-                        }
-                        Command::RIGHT => {
-                            {
-                                if self.direction != Direction::LEFT {
-                                    self.direction = Direction::RIGHT
-                                }
-                            }
-                        },
+                        Command::UP => if self.direction != Direction::DOWN { self.direction = Direction::UP },
+                        Command::DOWN => if self.direction != Direction::UP { self.direction = Direction::DOWN },
+                        Command::LEFT => if self.direction != Direction::RIGHT { self.direction = Direction::LEFT },
+                        Command::RIGHT => if self.direction != Direction::LEFT { self.direction = Direction::RIGHT },
                         Command::NONE => (),
                         Command::EXIT => break
                     }
                 },
                 _ => ()
             }
-            if frame_counter > update_every_n_frames {
-                frame_counter = 0;
-                self.update();
 
-            }
-            frame_counter += 1;
+            self.update();
             self.draw_screen(frame_ttl_ms, &lock);
         }
     }
 
     fn update(&mut self) {
         self.canvas.write_char(self.snake.pos[self.snake.length-1].row, self.snake.pos[self.snake.length-1].column, ' ', DEFAULT);
-        self.snake.update_position(&self.direction, self.width, self.height);
+        self.snake.update_position(&self.direction);
 
         for idx in 0..self.snake.length {
             self.canvas.write_char(self.snake.pos[idx].row, self.snake.pos[idx].column, self.snake.pos[idx].direction.to_string(), DEFAULT);

@@ -1,4 +1,3 @@
-use std::sync::{Arc, Mutex};
 use std::sync::mpsc::Sender;
 use super::command::Command;
 use std::thread::sleep;

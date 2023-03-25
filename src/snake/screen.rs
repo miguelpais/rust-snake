@@ -1,14 +1,9 @@
 use std::sync::mpsc::Receiver;
-use std::sync::{Arc, Mutex};
-
-use ascii_canvas::{{AsciiCanvas, AsciiView}};
 
 use super::direction::Direction;
 use super::command::Command;
 use super::body::SnakeBody;
-use super::body::Point;
-
-use ascii_canvas::style::DEFAULT;
+use super::util::even_ceiling;
 
 use crossterm::{
     cursor::MoveTo,
@@ -23,38 +18,60 @@ use std::thread::sleep;
 use std::time::Duration;
 
 pub struct Screen {
-    canvas: AsciiCanvas,
     snake: SnakeBody,
-    width: usize,
-    height: usize,
+    width: u16,
+    height: u16,
     direction: Direction,
 }
 
 impl Screen {
-    pub fn new(height: usize, width: usize) -> Screen {
-        let mut canvas = AsciiCanvas::new(height, width);
-        {
-            let view: &mut dyn AsciiView = &mut canvas;
-            view.draw_vertical_line(0..height, 0);
-            view.draw_vertical_line(0..height, width - 1);
-            view.draw_horizontal_line(0, 0..width);
-            view.draw_horizontal_line(height - 1, 0..width);
+    fn draw_square(y_max: u16, x_max: u16) {
+        let mut stdout = io::stdout();
+
+        stdout.queue(MoveTo(0, 0)).unwrap();
+        {print!("{}", "┌") }
+        stdout.queue(MoveTo(x_max, 0)).unwrap();
+        {print!("{}", "┐") }
+        stdout.queue(MoveTo(0, y_max)).unwrap();
+        {print!("{}", "└") }
+        stdout.queue(MoveTo(x_max, y_max)).unwrap();
+        {print!("{}", "┘") }
+
+        for i in 1..x_max {
+            stdout.queue(MoveTo(i, 0)).unwrap();
+            {print!("{}", "─") }
+            stdout.queue(MoveTo(i, y_max)).unwrap();
+            {print!("{}", "─") }
         }
+
+        for i in 1..y_max {
+            stdout.queue(MoveTo(0, i)).unwrap();
+            { print!("{}", "│") }
+            stdout.queue(MoveTo(x_max, i)).unwrap();
+            { print!("{}", "│") }
+        }
+    }
+
+    pub fn draw_canvas(&self) {
         let mut stdout = io::stdout();
         stdout.queue(SetBackgroundColor(Color::Black)).unwrap();
         stdout.queue(Clear(ClearType::All)).unwrap();
         stdout.queue(SetBackgroundColor(Color::Black)).unwrap();
         stdout.queue(SetForegroundColor(Color::DarkYellow)).unwrap();
+
+        Screen::draw_square(self.height, self.width);
+    }
+    pub fn new(size: u16) -> Screen {
         Screen {
-            canvas,
-            width,
-            height,
-            snake: SnakeBody::new(height / 2, width / 2, height, width),
+            width: size*2,
+            height: size,
+            snake: SnakeBody::new(size / 2, size / 2, size, size*2),
             direction: Direction::LEFT,
         }
     }
 
     pub fn main_loop(&mut self, frames_per_second: u64, rx: Receiver<Command>) {
+        self.draw_canvas();
         let frame_ttl_ms = 1000 / frames_per_second;
 
         loop {
@@ -73,40 +90,28 @@ impl Screen {
                 _ => ()
             }
 
-            self.update();
-            self.draw_screen(frame_ttl_ms);
+            self.update_snake();
+            self.draw_snake(frame_ttl_ms);
         }
     }
 
-    fn update(&mut self) {
+    fn update_snake(&mut self) {
         let mut stdout = io::stdout();
-        stdout.queue(MoveTo(self.snake.pos[self.snake.length-1].column as u16, self.snake.pos[self.snake.length-1].row as u16)).unwrap();
+        let tail_point = self.snake.pos.last().unwrap();
+        stdout.queue(MoveTo(tail_point.column, tail_point.row)).unwrap();
         print!(" ");
         self.snake.update_position(&self.direction);
-
-        for idx in 0..self.snake.length {
-            self.canvas.write_char(self.snake.pos[idx].row, self.snake.pos[idx].column, self.snake.pos[idx].direction.to_string(), DEFAULT);
-        }
-
     }
 
-    fn draw_screen(&self, frame_ttl_ms: u64) {
+    fn draw_snake(&self, frame_ttl_ms: u64) {
         sleep(Duration::from_millis(frame_ttl_ms));
         let mut stdout = io::stdout();
 
-        for (rowIdx, row) in self.canvas.to_strings().iter().enumerate() {
-            for (columnIdx, symbol) in row.to_string().chars().enumerate() {
-                if rowIdx == 0 || rowIdx == self.height - 1 || columnIdx == 0 || columnIdx == self.width -1 {
-                    stdout.queue(MoveTo(columnIdx as u16, rowIdx as u16)).unwrap();
-                    print!("{}", symbol);
-                }
-            }
-        }
         for pos in &self.snake.pos {
-            stdout.queue(MoveTo(pos.column as u16, pos.row as u16)).unwrap();
+            stdout.queue(MoveTo(pos.column, pos.row)).unwrap();
             print!("{}", pos.direction.to_string());
         }
-        stdout.queue(MoveTo(( self.width+1) as u16, (self.height + 1) as u16)).unwrap();
+        stdout.queue(MoveTo(self.width+1, self.height + 1)).unwrap();
         stdout.flush().unwrap();
     }
 }

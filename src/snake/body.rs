@@ -1,23 +1,31 @@
 use super::direction::Direction;
+use std::io;
+use super::util::even_ceiling;
+use crossterm::{
+    cursor::MoveTo,
+    style::{Color, SetBackgroundColor, SetForegroundColor},
+    terminal::{Clear, ClearType},
+    QueueableCommand,
+};
 
 pub struct SnakeBody {
     pub pos: Vec<Point>,
-    pub length: usize,
-    screen_height: usize,
-    screen_width: usize
+    pub length: u16,
+    screen_height: u16,
+    screen_width: u16
 }
 
 #[derive(Clone)]
 pub struct Point {
-    pub row: usize,
-    pub column: usize,
+    pub row: u16,
+    pub column: u16,
     pub direction: Direction
 }
 
-const SNAKE_LENGTH: usize = 10;
+const SNAKE_LENGTH: u16 = 10;
 
 impl SnakeBody {
-    pub fn new(row_head: usize, column_head: usize, screen_height: usize, screen_width: usize) -> SnakeBody {
+    pub fn new(row_head: u16, column_head: u16, screen_height: u16, screen_width: u16) -> SnakeBody {
 
         SnakeBody {
             pos: (0..SNAKE_LENGTH).map(|el| Point {
@@ -34,7 +42,7 @@ impl SnakeBody {
     pub fn update_position(&mut self, direction: &Direction) {
         let mut previous_body_part_pos = self.get_and_update_head(direction);
 
-        for idx in 1..self.length {
+        for idx in 1..self.length as usize {
             previous_body_part_pos = self.update_and_get_body_part(idx, previous_body_part_pos);
         }
     }
@@ -55,14 +63,17 @@ impl SnakeBody {
             Direction::RIGHT => head_pos.column = previous_head.column + 2,
             _ => (),
         }
-        if head_pos.row == self.screen_height - 1 {
+        let mut stdout = io::stdout();
+        stdout.queue(MoveTo(90, 90)).unwrap();
+        print!("{},{}",head_pos.column, head_pos.row);
+        if head_pos.row >= self.screen_height {
             head_pos.row = 1;
-        } else if head_pos.row == 0 {
-            head_pos.row = self.screen_height - 2;
+        } else if head_pos.row < 1 {
+            head_pos.row = self.screen_height - 1;
         }
-        if head_pos.column >= self.screen_width - 1 {
-            head_pos.column = 1
-        } else if head_pos.column <= 1 {
+        if head_pos.column >= self.screen_width {
+            head_pos.column = 2
+        } else if head_pos.column < 2 {
             head_pos.column = self.screen_width - 2
         }
 

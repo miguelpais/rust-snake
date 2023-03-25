@@ -16,6 +16,7 @@ use crate::util::even_ceiling;
 use crate::domain::direction::Direction;
 use crate::domain::command::Command;
 use crate::domain::snake::Snake;
+use crate::domain::point::Point;
 
 use super::fence;
 
@@ -32,17 +33,19 @@ pub struct Render {
 }
 
 impl Render {
-    pub fn new(size: u16, initial_snake_length: u8, frames_per_second: u64, input_receiver: Receiver<Command>) -> Render {
-        let even_size = even_ceiling(size);
-        let width = even_size * 2;
-        let height = even_size;
-        let half_screen = (even_size / 2) as u8;
+    pub fn new(screen_size: u16, initial_snake_length: u8, frames_per_second: u64, input_receiver: Receiver<Command>) -> Render {
+        let even_screen_size = even_ceiling(screen_size);
+        let screen_width = even_screen_size * 2;
+        let screen_height = even_screen_size;
+        let half_screen = (even_screen_size / 2) as u8;
+
+        let snake = Snake::new(half_screen, half_screen, screen_width, screen_height, initial_snake_length);
 
         Render {
-            screen_width: width,
-            screen_height: height,
-            snake: Snake::new(half_screen, half_screen, width, height, initial_snake_length),
             current_direction: Direction::LEFT,
+            screen_width,
+            screen_height,
+            snake,
             frames_per_second,
             input_receiver
         }
@@ -67,11 +70,39 @@ impl Render {
                 _ => ()
             }
 
-            self.update_snake();
-            self.draw_snake();
+            let last_tail_point = self.update_snake();
+            self.draw_snake(last_tail_point);
 
             sleep(Duration::from_millis(ONE_SECOND_MILIS / self.frames_per_second));
         }
+    }
+
+    fn update_snake(&mut self) -> Point {
+        let tail = self.snake.pos.last().unwrap();
+
+        let tail_point = Point {
+            x: tail.x,
+            y: tail.y,
+            direction: Direction::NONE
+        };
+
+        self.snake.update_position(&self.current_direction);
+
+        tail_point
+    }
+
+    fn draw_snake(&self, last_tail_point: Point) {
+        let mut stdout = io::stdout();
+
+        stdout.queue(MoveTo(last_tail_point.x, last_tail_point.y)).unwrap();
+        print!(" ");
+
+        for pos in &self.snake.pos {
+            stdout.queue(MoveTo(pos.x, pos.y)).unwrap();
+            print!("{}", pos.direction.to_string());
+        }
+        stdout.queue(MoveTo(self.screen_width +1, self.screen_height + 1)).unwrap();
+        stdout.flush().unwrap();
     }
 
     pub fn init_display(&self) {
@@ -80,24 +111,5 @@ impl Render {
         stdout.queue(Clear(ClearType::All)).unwrap();
         stdout.queue(SetBackgroundColor(Color::Black)).unwrap();
         stdout.queue(SetForegroundColor(Color::DarkYellow)).unwrap();
-    }
-
-    fn update_snake(&mut self) {
-        let mut stdout = io::stdout();
-        let tail_point = self.snake.pos.last().unwrap();
-        stdout.queue(MoveTo(tail_point.x, tail_point.y)).unwrap();
-        print!(" ");
-        self.snake.update_position(&self.current_direction);
-    }
-
-    fn draw_snake(&self) {
-        let mut stdout = io::stdout();
-
-        for pos in &self.snake.pos {
-            stdout.queue(MoveTo(pos.x, pos.y)).unwrap();
-            print!("{}", pos.direction.to_string());
-        }
-        stdout.queue(MoveTo(self.screen_width +1, self.screen_height + 1)).unwrap();
-        stdout.flush().unwrap();
     }
 }

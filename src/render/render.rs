@@ -27,10 +27,12 @@ pub struct Render {
     screen_width: u16,
     screen_height: u16,
     current_direction: Direction,
+    frames_per_second: u64,
+    input_receiver: Receiver<Command>
 }
 
 impl Render {
-    pub fn new(size: u16, initial_snake_length: u8) -> Render {
+    pub fn new(size: u16, initial_snake_length: u8, frames_per_second: u64, input_receiver: Receiver<Command>) -> Render {
         let even_size = even_ceiling(size);
         let width = even_size * 2;
         let height = even_size;
@@ -41,14 +43,17 @@ impl Render {
             screen_height: height,
             snake: Snake::new(half_screen, half_screen, width, height, initial_snake_length),
             current_direction: Direction::LEFT,
+            frames_per_second,
+            input_receiver
         }
     }
 
-    pub fn main_loop(&mut self, frames_per_second: u64, rx: Receiver<Command>) {
+    pub fn main_loop(&mut self) {
         self.init_display();
+        fence::draw(0, self.screen_height, 0, self.screen_width);
 
         loop {
-            let new_command = rx.try_recv();
+            let new_command = self.input_receiver.try_recv();
             match new_command {
                 Ok(command) => {
                     match command {
@@ -65,7 +70,7 @@ impl Render {
             self.update_snake();
             self.draw_snake();
 
-            sleep(Duration::from_millis(ONE_SECOND_MILIS / frames_per_second));
+            sleep(Duration::from_millis(ONE_SECOND_MILIS / self.frames_per_second));
         }
     }
 
@@ -75,8 +80,6 @@ impl Render {
         stdout.queue(Clear(ClearType::All)).unwrap();
         stdout.queue(SetBackgroundColor(Color::Black)).unwrap();
         stdout.queue(SetForegroundColor(Color::DarkYellow)).unwrap();
-
-        fence::draw(0, self.screen_height, 0, self.screen_width);
     }
 
     fn update_snake(&mut self) {

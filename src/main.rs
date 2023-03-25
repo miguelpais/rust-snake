@@ -23,9 +23,13 @@ fn main() {
         input_loop(tx, INPUT_CAPTURING_WINDOW_MS);
     });
 
-    let mut render = Render::new(SCREEN_SIZE, INITIAL_SNAKE_LENGTH);
+    let mut render = Render::new(
+        SCREEN_SIZE,
+        INITIAL_SNAKE_LENGTH,
+        FRAMES_PER_SECOND,
+        rx);
 
-    render.main_loop(FRAMES_PER_SECOND, rx);
+    render.main_loop();
 
     disable_raw_mode().unwrap_or(());
 }

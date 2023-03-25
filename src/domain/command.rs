@@ -4,6 +4,5 @@ pub enum Command {
     DOWN,
     LEFT,
     RIGHT,
-    NONE,
     EXIT
 }

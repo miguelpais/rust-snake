@@ -1,11 +1,11 @@
 use std::sync::mpsc::Sender;
-use super::command::Command;
 use std::thread::sleep;
-use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
-extern crate crossterm;
-
-use crossterm::event::{read, Event, KeyCode, poll};
 use std::time::Duration;
+
+use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
+use crossterm::event::{read, Event, KeyCode, poll};
+
+use crate::domain::command::Command;
 
 pub fn input_loop(tx: Sender<Command>, input_capturing_window_ms: u64) {
     loop {
@@ -21,7 +21,8 @@ pub fn input_loop(tx: Sender<Command>, input_capturing_window_ms: u64) {
 
 fn capture_command() -> Option<Command> {
     let mut new_command = None;
-    enable_raw_mode();
+    enable_raw_mode().unwrap_or(());
+
     let status = poll(Duration::from_millis(10));
     if status.is_ok() && status.unwrap() {
         let event = read();
@@ -44,6 +45,7 @@ fn capture_command() -> Option<Command> {
             }
         }
     }
-    disable_raw_mode();
+
+    disable_raw_mode().unwrap_or(());
     new_command
 }

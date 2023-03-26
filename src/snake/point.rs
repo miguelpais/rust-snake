@@ -16,4 +16,8 @@ impl Point {
             _ => (),
         }
     }
+
+    pub fn collides(&self, another: &Point) -> bool {
+        return self.x == another.x && self.y == another.y
+    }
 }

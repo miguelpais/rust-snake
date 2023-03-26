@@ -3,7 +3,6 @@ use crate::snake::point::Point;
 
 pub struct Snake {
     pub pos: Vec<Point>,
-    pub length: u16,
     pub screen_height: u16,
     pub screen_width: u16,
     pub direction: Direction,
@@ -17,7 +16,6 @@ impl Snake {
                 y: y_start as u16,
                 x: (x_start + el * 2) as u16,
             }).collect(),
-            length: initial_snake_length as u16,
             screen_height,
             screen_width,
             direction: Direction::LEFT
@@ -37,9 +35,24 @@ impl Snake {
     pub fn proceed(&mut self) {
         let mut previous_body_part_pos = self.get_and_update_head();
 
-        for idx in 1..self.length as usize {
+        for idx in 1..self.pos.len() {
             previous_body_part_pos = self.update_and_get_body_part(idx, previous_body_part_pos);
         }
+    }
+
+    pub fn tail(&self) -> &Point {
+        self.pos.last().unwrap()
+    }
+
+    pub fn collided_with_body(&self) -> bool {
+        let head = &self.pos[0];
+        for body_part in &self.pos[1..] {
+            if body_part.collides(head) {
+                return true
+            }
+        }
+
+        false
     }
 
     pub fn present_at(&self, point: &Point) -> bool {

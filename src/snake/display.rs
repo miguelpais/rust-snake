@@ -36,6 +36,19 @@ pub fn draw_snake(snake: &Snake) {
     stdout.flush().unwrap();
 }
 
+pub fn draw_score(score: u16) {
+    let mut stdout = io::stdout();
+    stdout.queue(MoveTo(0, 100)).unwrap();
+    print!("Score: {}", score);
+}
+
+pub fn message(msg: String) {
+    let mut stdout = io::stdout();
+    stdout.queue(MoveTo(0, 90)).unwrap();
+    print!("{}", msg);
+}
+
+
 pub fn debug(point: &Point) {
     let mut stdout = io::stdout();
     stdout.queue(MoveTo(100, 100)).unwrap();

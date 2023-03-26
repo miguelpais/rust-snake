@@ -6,6 +6,7 @@ pub enum Command {
     DOWN,
     LEFT,
     RIGHT,
+    PAUSE,
     EXIT
 }
 

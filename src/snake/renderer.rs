@@ -18,7 +18,9 @@ pub struct Renderer {
     screen_width: u16,
     screen_height: u16,
     frame_duration: Duration,
-    input_receiver: Receiver<Command>
+    input_receiver: Receiver<Command>,
+    removed_beers: Vec<Point>,
+    score: u16,
 }
 
 impl Renderer {
@@ -39,33 +41,65 @@ impl Renderer {
             snake,
             beer,
             frame_duration,
-            input_receiver
+            input_receiver,
+            removed_beers: Vec::new(),
+            score: 0
         }
     }
 
     pub fn main_loop(&mut self) {
+        let mut game_over = false;
+        let mut pause = false;
         display::init();
         display::draw_fence(0, self.screen_height, 0, self.screen_width);
 
         loop {
-            let tail = self.snake.pos.last().unwrap();
-            display::erase_at_position(tail.y, tail.x);
+            let initial_tail = self.snake.pos.last().unwrap().clone();
 
             let message = self.input_receiver.try_recv();
             if let Ok(Command::EXIT) = message { break }
-            if let Ok(command) = message { self.snake.change_direction(command.to_direction()) }
+            if let Ok(Command::PAUSE) = message { pause = !pause; continue; }
 
-            self.snake.proceed();
-            if self.snake.present_at(&self.beer.pos) {
-                let new_random_free_point = self.get_random_free_point();
-                self.beer = Beer::new(new_random_free_point.y, new_random_free_point.x);
+            if !game_over && !pause {
+                if let Ok(command) = message { self.snake.change_direction(command.to_direction()) }
+
+                if !self.removed_beers.is_empty() && self.removed_beers[0].collides(&initial_tail) {
+                    self.snake.pos.push(initial_tail);
+                    self.removed_beers.remove(0);
+                } else {
+                    display::erase_at_position(initial_tail.y, initial_tail.x);
+                }
+
+                self.snake.proceed();
+
+                if self.snake.collided_with_body() {
+                    game_over = true;
+                    continue;
+                }
+                if Self::collided(&self.snake, &self.beer) {
+                    self.removed_beers.push(self.beer.pos.clone());
+                    self.beer = self.generate_new_beer();
+                    self.score += 1;
+                }
+
+
+                display::draw_beer(&self.beer);
+                display::draw_snake(&self.snake);
+                display::draw_score(self.score);
             }
-
-            display::draw_beer(&self.beer);
-            display::draw_snake(&self.snake);
 
             sleep(self.frame_duration);
         }
+    }
+
+    fn collided(snake: &Snake, beer: &Beer) -> bool {
+        return snake.present_at(&beer.pos)
+    }
+
+    fn generate_new_beer(&mut self) -> Beer {
+        let new_random_free_point = self.get_random_free_point();
+
+        Beer::new(new_random_free_point.y, new_random_free_point.x)
     }
 
     fn get_random_free_point(&mut self) -> Point {

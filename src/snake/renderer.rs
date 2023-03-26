@@ -42,7 +42,7 @@ impl Renderer {
 
         loop {
             let tail = self.snake.pos.last().unwrap();
-            display::erase_at_position(tail.x, tail.y);
+            display::erase_at_position(tail.y, tail.x);
 
             let message = self.input_receiver.try_recv();
             if let Ok(Command::EXIT) = message { break }

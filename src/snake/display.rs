@@ -61,7 +61,7 @@ pub fn draw_fence(start_y: u16, y_max: u16, start_x: u16, x_max: u16) {
     }
 }
 
-pub fn erase_at_position(x: u16, y: u16) {
+pub fn erase_at_position(y: u16, x: u16) {
     let mut stdout = io::stdout();
 
     stdout.queue(MoveTo(x, y)).unwrap();

@@ -1,11 +1,12 @@
-use super::direction::Direction;
-use super::point::Point;
+use crate::snake::direction::Direction;
+use crate::snake::point::Point;
 
 pub struct Snake {
     pub pos: Vec<Point>,
     pub length: u16,
-    screen_height: u16,
-    screen_width: u16
+    pub screen_height: u16,
+    pub screen_width: u16,
+    pub direction: Direction,
 }
 
 impl Snake {
@@ -15,31 +16,40 @@ impl Snake {
             pos: (0..initial_snake_length).map(|el| Point {
                 y: y_start as u16,
                 x: (x_start + el * 2) as u16,
-                direction: Direction::LEFT
             }).collect(),
             length: initial_snake_length as u16,
             screen_height,
-            screen_width
+            screen_width,
+            direction: Direction::LEFT
         }
     }
 
-    pub fn update_position(&mut self, direction: &Direction) {
-        let mut previous_body_part_pos = self.get_and_update_head(direction);
+    pub fn change_direction(&mut self, direction: Direction) {
+        match direction {
+            Direction::UP => if self.direction != Direction::DOWN { self.direction = Direction::UP },
+            Direction::DOWN => if self.direction != Direction::UP { self.direction = Direction::DOWN },
+            Direction::LEFT => if self.direction != Direction::RIGHT { self.direction = Direction::LEFT },
+            Direction::RIGHT => if self.direction != Direction::LEFT { self.direction = Direction::RIGHT },
+            _ => (),
+        }
+    }
+
+    pub fn proceed(&mut self) {
+        let mut previous_body_part_pos = self.get_and_update_head();
 
         for idx in 1..self.length as usize {
             previous_body_part_pos = self.update_and_get_body_part(idx, previous_body_part_pos);
         }
     }
 
-    fn get_and_update_head(&mut self, direction: &Direction) -> Point {
+    fn get_and_update_head(&mut self) -> Point {
         let mut head_pos = &mut self.pos[0];
         let previous_head = Point {
             y: head_pos.y,
-            x: head_pos.x,
-            direction: Direction::NONE
+            x: head_pos.x
         };
 
-        head_pos.move_to(direction.clone());
+        head_pos.move_to(&self.direction);
 
         if head_pos.y >= self.screen_height {
             head_pos.y = 1;
@@ -59,11 +69,9 @@ impl Snake {
         let new_previous_pos = Point {
             y: self.pos[idx].y,
             x: self.pos[idx].x,
-            direction: Direction::NONE
         };
         self.pos[idx].x = previous_body_part_pos.x;
         self.pos[idx].y = previous_body_part_pos.y;
-        self.pos[idx].direction = Direction::NONE;
 
         new_previous_pos
     }

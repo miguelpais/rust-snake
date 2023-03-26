@@ -14,6 +14,6 @@ Play with the arrows keys.
 
 ## Coming soon...
 
-- Food placement on the screen
-- Collision detection and snake growth
+- Snake growth
+- Game over collision detection
 - Show current score 

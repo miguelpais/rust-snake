@@ -10,10 +10,8 @@ $ cargo build
 $ cargo run
 ```
 
-Play with the arrows keys.
+Play with the arrows keys, pause with P key and exit with ESC.
 
 ## Coming soon...
 
-- Snake growth
-- Game over collision detection
-- Show current score 
+- Drunk mode 

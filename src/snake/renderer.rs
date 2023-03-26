@@ -134,8 +134,6 @@ impl Renderer {
         let mut rgn = rand::thread_rng();
         let random_index = rgn.gen_range(0..available_points.len());
 
-        let p = available_points[random_index].clone();
-        display::debug(&p);
-        p
+        available_points[random_index].clone();
     }
 }

@@ -48,13 +48,6 @@ pub fn message(msg: String) {
     print!("{}", msg);
 }
 
-
-pub fn debug(point: &Point) {
-    let mut stdout = io::stdout();
-    stdout.queue(MoveTo(100, 100)).unwrap();
-    print!("{},{}", point.x, point.y);
-}
-
 pub fn draw_beer(beer: &Beer) {
     let mut stdout = io::stdout();
     stdout.queue(MoveTo(beer.pos.x, beer.pos.y)).unwrap();

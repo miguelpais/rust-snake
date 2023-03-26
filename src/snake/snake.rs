@@ -42,6 +42,13 @@ impl Snake {
         }
     }
 
+    pub fn present_at(&self, point: &Point) -> bool {
+        for occupied in &self.pos {
+            if occupied.x == point.x && occupied.y == point.y { return true }
+        }
+        return false;
+    }
+
     fn get_and_update_head(&mut self) -> Point {
         let mut head_pos = &mut self.pos[0];
         let previous_head = Point {

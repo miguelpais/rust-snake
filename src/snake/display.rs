@@ -10,6 +10,8 @@ use crossterm::{
 
 use crate::snake::snake::Snake;
 use crate::snake::direction::Direction;
+use crate::snake::beer::Beer;
+use crate::snake::point::Point;
 
 pub fn init() {
     let mut stdout = io::stdout();
@@ -32,6 +34,18 @@ pub fn draw_snake(snake: &Snake) {
     }
     stdout.queue(MoveTo(snake.screen_width + 1, snake.screen_height + 1)).unwrap();
     stdout.flush().unwrap();
+}
+
+pub fn debug(point: &Point) {
+    let mut stdout = io::stdout();
+    stdout.queue(MoveTo(100, 100)).unwrap();
+    print!("{},{}", point.x, point.y);
+}
+
+pub fn draw_beer(beer: &Beer) {
+    let mut stdout = io::stdout();
+    stdout.queue(MoveTo(beer.pos.x, beer.pos.y)).unwrap();
+    print!("🍺");
 }
 
 pub fn draw_fence(start_y: u16, y_max: u16, start_x: u16, x_max: u16) {

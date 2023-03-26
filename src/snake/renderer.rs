@@ -3,10 +3,8 @@ use std::time::Duration;
 use std::sync::mpsc::Receiver;
 
 use crate::util::even_ceiling;
-use crate::snake::direction::Direction;
 use crate::snake::command::Command;
 use crate::snake::snake::Snake;
-use crate::snake::point::Point;
 use crate::snake::display;
 
 const ONE_SECOND_MILIS: u64 = 1_000;
@@ -15,7 +13,7 @@ pub struct Renderer {
     snake: Snake,
     screen_width: u16,
     screen_height: u16,
-    frames_per_second: u64,
+    frame_duration: Duration,
     input_receiver: Receiver<Command>
 }
 
@@ -25,6 +23,7 @@ impl Renderer {
         let screen_width = even_screen_size * 2;
         let screen_height = even_screen_size;
         let half_screen = (even_screen_size / 2) as u8;
+        let frame_duration = Duration::from_millis(ONE_SECOND_MILIS / frames_per_second);
 
         let snake = Snake::new(half_screen, half_screen, screen_width, screen_height, initial_snake_length);
 
@@ -32,7 +31,7 @@ impl Renderer {
             screen_width,
             screen_height,
             snake,
-            frames_per_second,
+            frame_duration,
             input_receiver
         }
     }
@@ -52,7 +51,7 @@ impl Renderer {
             self.snake.proceed();
             display::draw_snake(&self.snake);
 
-            sleep(Duration::from_millis(ONE_SECOND_MILIS / self.frames_per_second));
+            sleep(self.frame_duration);
         }
     }
 }

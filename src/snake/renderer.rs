@@ -22,6 +22,8 @@ pub struct Renderer {
     score: u16,
 }
 
+struct CollidedWithBodyErr;
+
 impl Renderer {
     pub fn new(screen_size: u16, initial_snake_length: u8, frames_per_second: u64, input_receiver: Receiver<Command>) -> Renderer {
         let even_screen_size = even_ceiling(screen_size);
@@ -60,7 +62,10 @@ impl Renderer {
             if game_over || pause { continue }
             if let Ok(command) = message { self.snake.change_direction(command.to_direction()) }
 
-            if self.refreshed_positions_ends_game(previous_tail_pos) { game_over = true; continue; }
+            if let Err(CollidedWithBodyErr) = self.refresh_positions(previous_tail_pos) {
+                game_over = true;
+                continue;
+            }
 
             display::draw_beer(&self.beer);
             display::draw_snake(&self.snake);
@@ -68,7 +73,7 @@ impl Renderer {
         }
     }
 
-    fn refreshed_positions_ends_game(&mut self, previous_tail_pos: Point) -> bool {
+    fn refresh_positions(&mut self, previous_tail_pos: Point) -> Result<(), CollidedWithBodyErr> {
         if previous_tail_pos.collides_with_first(&self.removed_beers) {
             self.snake.push(previous_tail_pos);
             self.removed_beers.remove(0);
@@ -80,7 +85,7 @@ impl Renderer {
         let new_head = self.snake.head();
 
         if self.snake.collided_with_body() {
-            return true;
+            return Err(CollidedWithBodyErr);
         }
         if new_head.collides(&self.beer.pos) {
             self.removed_beers.push(self.beer.pos.clone());
@@ -88,6 +93,6 @@ impl Renderer {
             self.score += 1;
         }
 
-        return false;
+        return Ok(());
     }
 }

@@ -10,8 +10,4 @@ $ cargo build
 $ cargo run
 ```
 
-Play with the arrows keys, pause with P key and exit with ESC.
-
-## Coming soon...
-
-- Drunk mode 
+Play with the arrows keys, pause with SPACEBAR key and exit with ESC.

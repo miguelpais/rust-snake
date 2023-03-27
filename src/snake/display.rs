@@ -11,14 +11,15 @@ use crossterm::{
 use crate::snake::snake::Snake;
 use crate::snake::direction::Direction;
 use crate::snake::beer::Beer;
-use crate::snake::point::Point;
 
-pub fn init() {
+pub fn init(screen_height: u16, screen_width: u16) {
     let mut stdout = io::stdout();
     stdout.queue(SetBackgroundColor(Color::Black)).unwrap();
     stdout.queue(Clear(ClearType::All)).unwrap();
     stdout.queue(SetBackgroundColor(Color::Black)).unwrap();
     stdout.queue(SetForegroundColor(Color::DarkYellow)).unwrap();
+
+    draw_fence(0, screen_height, 0, screen_width);
 }
 
 pub fn draw_snake(snake: &Snake) {
@@ -42,16 +43,10 @@ pub fn draw_score(score: u16) {
     print!("Score: {}", score);
 }
 
-pub fn message(msg: String) {
-    let mut stdout = io::stdout();
-    stdout.queue(MoveTo(0, 90)).unwrap();
-    print!("{}", msg);
-}
-
 pub fn draw_beer(beer: &Beer) {
     let mut stdout = io::stdout();
     stdout.queue(MoveTo(beer.pos.x, beer.pos.y)).unwrap();
-    print!("🍺");
+    print!("{}", beer.to_string());
 }
 
 pub fn draw_fence(start_y: u16, y_max: u16, start_x: u16, x_max: u16) {

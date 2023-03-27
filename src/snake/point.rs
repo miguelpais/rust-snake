@@ -20,4 +20,10 @@ impl Point {
     pub fn collides(&self, another: &Point) -> bool {
         return self.x == another.x && self.y == another.y
     }
+
+    pub fn collides_with_first(&self, points_vector: &Vec<Point>) -> bool {
+        if points_vector.is_empty() { return false }
+
+        points_vector[0].collides(self)
+    }
 }

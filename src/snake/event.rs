@@ -4,7 +4,7 @@ use std::time::Duration;
 use rusty_audio::Audio;
 
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
-use crossterm::event::{read, Event, KeyCode, poll, KeyEvent};
+use crossterm::event::{read, Event, KeyCode, poll};
 
 use crate::snake::command::Command;
 
@@ -37,7 +37,7 @@ fn capture_command() -> Option<Command> {
             else if specific == Event::Key(KeyCode::Down.into()) { new_command = Some(Command::DOWN) }
             else if specific == Event::Key(KeyCode::Up.into()) { new_command = Some(Command::UP) }
             else if specific == Event::Key(KeyCode::Esc.into()) { new_command = Some(Command::EXIT) }
-            else if specific == Event::Key(KeyCode::Char('p').into()) { new_command = Some(Command::PAUSE) }
+            else if specific == Event::Key(KeyCode::Char(' ').into()) { new_command = Some(Command::PAUSE) }
         }
     }
 

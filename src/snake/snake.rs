@@ -40,8 +40,16 @@ impl Snake {
         }
     }
 
-    pub fn tail(&self) -> &Point {
-        self.pos.last().unwrap()
+    pub fn head(&self) -> Point {
+        self.pos.get(0).unwrap().clone()
+    }
+
+    pub fn tail(&self) -> Point {
+        self.pos.last().unwrap().clone()
+    }
+
+    pub fn push(&mut self, point: Point) {
+        self.pos.push(point);
     }
 
     pub fn collided_with_body(&self) -> bool {
@@ -53,13 +61,6 @@ impl Snake {
         }
 
         false
-    }
-
-    pub fn present_at(&self, point: &Point) -> bool {
-        for occupied in &self.pos {
-            if occupied.x == point.x && occupied.y == point.y { return true }
-        }
-        return false;
     }
 
     fn get_and_update_head(&mut self) -> Point {

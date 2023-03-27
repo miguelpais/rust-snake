@@ -1,7 +1,6 @@
 use std::thread::sleep;
 use std::time::Duration;
 use std::sync::mpsc::Receiver;
-use rand::Rng;
 
 use crate::util::even_ceiling;
 use crate::snake::command::Command;
@@ -10,7 +9,7 @@ use crate::snake::display;
 use crate::snake::beer::Beer;
 use crate::snake::point::Point;
 
-const ONE_SECOND_MILIS: u64 = 1_000;
+const ONE_SECOND_MILLIS: u64 = 1_000;
 
 pub struct Renderer {
     snake: Snake,
@@ -29,11 +28,10 @@ impl Renderer {
         let screen_width = even_screen_size * 2;
         let screen_height = even_screen_size;
         let half_screen = (even_screen_size / 2) as u8;
-        let frame_duration = Duration::from_millis(ONE_SECOND_MILIS / frames_per_second);
+        let frame_duration = Duration::from_millis(ONE_SECOND_MILLIS / frames_per_second);
 
         let snake = Snake::new(half_screen, half_screen, screen_width, screen_height, initial_snake_length);
-        let random_point = Self::get_random_free_point_from_snake_positions(&snake, screen_width, screen_height);
-        let beer = Beer::new(random_point.y, random_point.x);
+        let beer = Beer::new_at_random_position(&snake);
 
         Renderer {
             screen_width,
@@ -50,90 +48,46 @@ impl Renderer {
     pub fn main_loop(&mut self) {
         let mut game_over = false;
         let mut pause = false;
-        display::init();
-        display::draw_fence(0, self.screen_height, 0, self.screen_width);
+        display::init(self.screen_height, self.screen_width);
 
         loop {
-            let initial_tail = self.snake.pos.last().unwrap().clone();
+            sleep(self.frame_duration);
+            let previous_tail_pos = self.snake.tail();
 
             let message = self.input_receiver.try_recv();
             if let Ok(Command::EXIT) = message { break }
             if let Ok(Command::PAUSE) = message { pause = !pause; continue; }
+            if game_over || pause { continue }
+            if let Ok(command) = message { self.snake.change_direction(command.to_direction()) }
 
-            if !game_over && !pause {
-                if let Ok(command) = message { self.snake.change_direction(command.to_direction()) }
+            if self.refreshed_positions_ends_game(previous_tail_pos) { game_over = true; continue; }
 
-                if !self.removed_beers.is_empty() && self.removed_beers[0].collides(&initial_tail) {
-                    self.snake.pos.push(initial_tail);
-                    self.removed_beers.remove(0);
-                } else {
-                    display::erase_at_position(initial_tail.y, initial_tail.x);
-                }
-
-                self.snake.proceed();
-
-                if self.snake.collided_with_body() {
-                    game_over = true;
-                    continue;
-                }
-                if Self::collided(&self.snake, &self.beer) {
-                    self.removed_beers.push(self.beer.pos.clone());
-                    self.beer = self.generate_new_beer();
-                    self.score += 1;
-                }
-
-
-                display::draw_beer(&self.beer);
-                display::draw_snake(&self.snake);
-                display::draw_score(self.score);
-            }
-
-            sleep(self.frame_duration);
+            display::draw_beer(&self.beer);
+            display::draw_snake(&self.snake);
+            display::draw_score(self.score);
         }
     }
 
-    fn collided(snake: &Snake, beer: &Beer) -> bool {
-        return snake.present_at(&beer.pos)
-    }
-
-    fn generate_new_beer(&mut self) -> Beer {
-        let new_random_free_point = self.get_random_free_point();
-
-        Beer::new(new_random_free_point.y, new_random_free_point.x)
-    }
-
-    fn get_random_free_point(&mut self) -> Point {
-        let mut occupied_points: Vec<&Point> = Vec::new();
-        for el in &self.snake.pos {
-            occupied_points.push(el);
+    fn refreshed_positions_ends_game(&mut self, previous_tail_pos: Point) -> bool {
+        if previous_tail_pos.collides_with_first(&self.removed_beers) {
+            self.snake.push(previous_tail_pos);
+            self.removed_beers.remove(0);
+        } else {
+            display::erase_at_position(previous_tail_pos.y, previous_tail_pos.x);
         }
 
-        Self::get_random_free_point_from_occupied(&occupied_points, self.screen_width, self.screen_height)
-    }
+        self.snake.proceed();
+        let new_head = self.snake.head();
 
-    fn get_random_free_point_from_snake_positions(snake: &Snake, screen_width: u16, screen_height: u16) -> Point{
-        let mut occupied_points: Vec<&Point> = Vec::new();
-        for el in &snake.pos {
-            occupied_points.push(el);
+        if self.snake.collided_with_body() {
+            return true;
+        }
+        if new_head.collides(&self.beer.pos) {
+            self.removed_beers.push(self.beer.pos.clone());
+            self.beer = Beer::new_at_random_position(&self.snake);
+            self.score += 1;
         }
 
-        Self::get_random_free_point_from_occupied(&occupied_points, screen_width, screen_height)
-    }
-
-    fn get_random_free_point_from_occupied(occupied_points: &Vec<&Point>, screen_width: u16, screen_height: u16) -> Point {
-        let mut available_points: Vec<Point> = Vec::new();
-        for x in (2..screen_width).step_by(2) {
-            for y in 2..screen_height {
-                let mut occupied = false;
-                for occupied_point in occupied_points {
-                    if occupied_point.x == x && occupied_point.y == y { occupied = true }
-                }
-                if !occupied { available_points.push(Point { x, y} ); }
-            }
-        }
-        let mut rgn = rand::thread_rng();
-        let random_index = rgn.gen_range(0..available_points.len());
-
-        available_points[random_index].clone()
+        return false;
     }
 }

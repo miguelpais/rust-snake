@@ -57,9 +57,12 @@ impl Renderer {
             let previous_tail_pos = self.snake.tail();
 
             let message = self.input_receiver.try_recv();
+
             if let Ok(Command::EXIT) = message { break }
             if let Ok(Command::PAUSE) = message { pause = !pause; continue; }
+
             if game_over || pause { continue }
+
             if let Ok(command) = message { self.snake.change_direction(command.to_direction()) }
 
             if let Err(CollidedWithBodyErr) = self.refresh_positions(previous_tail_pos) {

@@ -16,7 +16,7 @@ pub fn get_random_free_point(snake: &Snake) -> Point {
     }
 
     for x in (2..snake.screen_width).step_by(2) {
-        for y in 2..snake.screen_height {
+        for y in 1..snake.screen_height {
             let mut occupied = false;
             for occupied_point in occupied_points.clone() {
                 if occupied_point.x == x && occupied_point.y == y { occupied = true }

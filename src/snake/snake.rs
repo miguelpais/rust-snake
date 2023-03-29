@@ -87,6 +87,13 @@ impl Snake {
         return false;
     }
 
+    pub fn present_at(&self, given: &Point) -> bool {
+        for point in &self.pos {
+            if given.collides(point) { return true }
+        }
+        return false;
+    }
+
     fn get_and_update_head(&mut self) -> Point {
         let head_pos = &mut self.pos[0];
         let previous_head = Point {

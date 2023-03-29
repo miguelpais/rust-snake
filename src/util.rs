@@ -8,20 +8,14 @@ pub fn even_ceiling(num: u16) -> u16 {
 }
 
 pub fn get_random_free_point(snake: &Snake) -> Point {
-    let mut occupied_points: Vec<&Point> = Vec::new();
     let mut available_points: Vec<Point> = Vec::new();
-
-    for el in &snake.pos {
-        occupied_points.push(el);
-    }
 
     for x in (2..snake.screen_width).step_by(2) {
         for y in 1..snake.screen_height {
-            let mut occupied = false;
-            for occupied_point in occupied_points.clone() {
-                if occupied_point.x == x && occupied_point.y == y { occupied = true }
+            let point = Point {x, y};
+            if !snake.present_at(&point ) {
+                available_points.push(point);
             }
-            if !occupied { available_points.push(Point { x, y} ); }
         }
     }
     let mut rgn = rand::thread_rng();

@@ -13,7 +13,7 @@ pub struct Fence;
 
 impl Fence {
     pub fn renderer(floating_walls_mode: bool) -> Box<dyn FenceRenderer> {
-        if floating_walls_mode { Box::new(FloatingWallFence) } else { Box::new(SolidWallFence) }
+        if floating_walls_mode { Box::new(FloatingWallFence {}) } else { Box::new(SolidWallFence {}) }
     }
 }
 

@@ -1,10 +1,10 @@
 pub trait FenceRenderer {
-    fn top_right<'a>(&self) -> &'a str;
-    fn top_left<'a>(&self) -> &'a str;
-    fn bottom_left<'a>(&self) -> &'a str;
-    fn bottom_right<'a>(&self) -> &'a str;
-    fn vertical_wall<'a>(&self) -> &'a str;
-    fn horizontal_wall<'a>(&self) -> &'a str;
+    fn top_right(&self) -> &str;
+    fn top_left(&self) -> &str;
+    fn bottom_left(&self) -> &str;
+    fn bottom_right(&self) -> &str;
+    fn vertical_wall(&self) -> &str;
+    fn horizontal_wall(&self) -> &str;
 }
 
 struct SolidWallFence;
@@ -18,19 +18,19 @@ impl Fence {
 }
 
 impl FenceRenderer for SolidWallFence {
-    fn top_right<'a>(&self) -> &'a str { "╗" }
-    fn top_left<'a>(&self) -> &'a str { "╔" }
-    fn bottom_left<'a>(&self) -> &'a str { "╚" }
-    fn bottom_right<'a>(&self) -> &'a str { "╝" }
-    fn vertical_wall<'a>(&self) -> &'a str { "║" }
-    fn horizontal_wall<'a>(&self) -> &'a str { "═" }
+    fn top_right(&self) -> &str { "╗" }
+    fn top_left(&self) -> &str { "╔" }
+    fn bottom_left(&self) -> &str { "╚" }
+    fn bottom_right(&self) -> &str { "╝" }
+    fn vertical_wall(&self) -> &str { "║" }
+    fn horizontal_wall(&self) -> &str { "═" }
 }
 
 impl FenceRenderer for FloatingWallFence {
-    fn top_right<'a>(&self) -> &'a str { "┐" }
-    fn top_left<'a>(&self) -> &'a str { "┌" }
-    fn bottom_left<'a>(&self) -> &'a str { "└" }
-    fn bottom_right<'a>(&self) -> &'a str { "┘" }
-    fn vertical_wall<'a>(&self) -> &'a str { "│" }
-    fn horizontal_wall<'a>(&self) -> &'a str { "─" }
+    fn top_right(&self) -> &str { "┐" }
+    fn top_left(&self) -> &str { "┌" }
+    fn bottom_left(&self) -> &str { "└" }
+    fn bottom_right(&self) -> &str { "┘" }
+    fn vertical_wall(&self) -> &str { "│" }
+    fn horizontal_wall(&self) -> &str { "─" }
 }

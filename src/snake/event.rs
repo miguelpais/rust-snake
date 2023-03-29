@@ -1,24 +1,22 @@
 use std::sync::mpsc::Sender;
 use std::thread::sleep;
 use std::time::Duration;
-use rusty_audio::Audio;
 
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use crossterm::event::{read, Event, KeyCode, poll};
 
 use crate::snake::command::Command;
 
-pub fn input_loop(tx: Sender<Command>, input_capturing_window_ms: u64) {
-    let mut audio = Audio::new();
-    audio.add("audio_drop", "audio/audio_drop.wav");
+const INPUT_CAPTURING_WINDOW_MS: u64 = 3;
+
+pub fn event_loop(tx: Sender<Command>) {
     loop {
         {
             if let Some(command) = capture_command() {
-                audio.play("audio_drop");
                 tx.send(command).unwrap();
             }
         }
-        sleep(Duration::from_millis(input_capturing_window_ms));
+        sleep(Duration::from_millis(INPUT_CAPTURING_WINDOW_MS));
     }
 }
 

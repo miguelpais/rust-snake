@@ -10,16 +10,19 @@ use crossterm::{
 
 use crate::snake::snake::Snake;
 use crate::snake::direction::Direction;
-use crate::snake::beer::Beer;
+use crate::snake::food::Food;
+use crate::snake::fence::{Fence, FenceRenderer};
 
-pub fn init(screen_height: u16, screen_width: u16) {
+pub fn init(screen_height: u16, screen_width: u16, floating_walls_mode: bool) {
     let mut stdout = io::stdout();
     stdout.queue(SetBackgroundColor(Color::Black)).unwrap();
     stdout.queue(Clear(ClearType::All)).unwrap();
     stdout.queue(SetBackgroundColor(Color::Black)).unwrap();
     stdout.queue(SetForegroundColor(Color::DarkYellow)).unwrap();
 
-    draw_fence(0, screen_height, 0, screen_width);
+    let fence_renderer = Fence::renderer(floating_walls_mode);
+
+    draw_fence(0, screen_height, 0, screen_width, fence_renderer);
 }
 
 pub fn draw_snake(snake: &Snake) {
@@ -43,36 +46,36 @@ pub fn draw_score(score: u16) {
     print!("Score: {}", score);
 }
 
-pub fn draw_beer(beer: &Beer) {
+pub fn draw_food(beer: &Food) {
     let mut stdout = io::stdout();
     stdout.queue(MoveTo(beer.pos.x, beer.pos.y)).unwrap();
     print!("{}", beer.to_string());
 }
 
-pub fn draw_fence(start_y: u16, y_max: u16, start_x: u16, x_max: u16) {
+pub fn draw_fence(start_y: u16, y_max: u16, start_x: u16, x_max: u16, fence_renderer: Box<dyn FenceRenderer>) {
     let mut stdout = io::stdout();
 
     stdout.queue(MoveTo(start_x, start_y)).unwrap();
-    print!("{}", "┌");
+    print!("{}", fence_renderer.top_left());
     stdout.queue(MoveTo(x_max, start_y)).unwrap();
-    print!("{}", "┐");
+    print!("{}", fence_renderer.top_right());
     stdout.queue(MoveTo(start_x, y_max)).unwrap();
-    print!("{}", "└");
+    print!("{}", fence_renderer.bottom_left());
     stdout.queue(MoveTo(x_max, y_max)).unwrap();
-    print!("{}", "┘");
+    print!("{}", fence_renderer.bottom_right());
 
     for i in 1..x_max {
         stdout.queue(MoveTo(i, start_y)).unwrap();
-        print!("{}", "─");
+        print!("{}", fence_renderer.horizontal_wall());
         stdout.queue(MoveTo(i, y_max)).unwrap();
-        print!("{}", "─");
+        print!("{}", fence_renderer.horizontal_wall());
     }
 
     for i in 1..y_max {
         stdout.queue(MoveTo(start_x, i)).unwrap();
-        print!("{}", "│");
+        print!("{}", fence_renderer.vertical_wall());
         stdout.queue(MoveTo(x_max, i)).unwrap();
-        print!("{}", "│");
+        print!("{}", fence_renderer.vertical_wall());
     }
 }
 

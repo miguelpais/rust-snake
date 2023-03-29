@@ -1,4 +1,5 @@
 use crate::snake::direction::Direction;
+use crate::snake::command::Command;
 use crate::snake::point::Point;
 
 pub struct Snake {
@@ -6,10 +7,11 @@ pub struct Snake {
     pub screen_height: u16,
     pub screen_width: u16,
     pub direction: Direction,
+    floating_walls_mode: bool,
 }
 
 impl Snake {
-    pub fn new(x_start: u8, y_start: u8, screen_width: u16, screen_height: u16, initial_snake_length: u8) -> Snake {
+    pub fn new(x_start: u8, y_start: u8, screen_width: u16, screen_height: u16, floating_walls_mode: bool, initial_snake_length: u8) -> Snake {
 
         Snake {
             pos: (0..initial_snake_length).map(|el| Point {
@@ -18,18 +20,22 @@ impl Snake {
             }).collect(),
             screen_height,
             screen_width,
+            floating_walls_mode,
             direction: Direction::LEFT
         }
     }
 
-    pub fn change_direction(&mut self, direction: Direction) {
-        match direction {
-            Direction::UP => if self.direction != Direction::DOWN { self.direction = Direction::UP },
-            Direction::DOWN => if self.direction != Direction::UP { self.direction = Direction::DOWN },
-            Direction::LEFT => if self.direction != Direction::RIGHT { self.direction = Direction::LEFT },
-            Direction::RIGHT => if self.direction != Direction::LEFT { self.direction = Direction::RIGHT },
+    pub fn command(&mut self, command: Command) -> bool {
+        let initial_direction = self.direction.clone();
+        match command {
+            Command::UP => if self.direction != Direction::DOWN { self.direction = Direction::UP },
+            Command::DOWN => if self.direction != Direction::UP { self.direction = Direction::DOWN },
+            Command::LEFT => if self.direction != Direction::RIGHT { self.direction = Direction::LEFT },
+            Command::RIGHT => if self.direction != Direction::LEFT { self.direction = Direction::RIGHT },
             _ => (),
         }
+
+        return initial_direction != self.direction;
     }
 
     pub fn proceed(&mut self) {
@@ -48,23 +54,41 @@ impl Snake {
         self.pos.last().unwrap().clone()
     }
 
-    pub fn push(&mut self, point: Point) {
-        self.pos.push(point);
+    pub fn grow_from_tail(&mut self) {
+        self.pos.push(self.tail());
     }
 
-    pub fn collided_with_body(&self) -> bool {
-        let head = &self.pos[0];
-        for body_part in &self.pos[1..] {
-            if body_part.collides(head) {
-                return true
-            }
-        }
+    pub fn head_collides(&self, point: &Point) -> bool {
+        return Self::collides_with_any(&self.head(), &vec![point.clone()])
+    }
 
-        false
+    pub fn tail_collides(&self, opt_point: Option<&Point>) -> bool {
+        if opt_point.is_none() { return false }
+
+        return Self::collides_with_any(&self.tail(), &vec![opt_point.unwrap().clone()])
+    }
+
+    pub fn head_collides_with_fence(&self) -> bool {
+        if self.floating_walls_mode { return false };
+
+        self.head().collides_with_fence(self.screen_height, self.screen_width)
+    }
+
+    pub fn head_collides_with_body(&self) -> bool {
+        return Self::collides_with_any(&self.head(), &Vec::from(&self.pos[1..]));
+    }
+
+    fn collides_with_any(target: &Point, points: &Vec<Point>) -> bool {
+        if points.is_empty() { return false };
+
+        for point in points {
+            if target.collides(point) { return true }
+        }
+        return false;
     }
 
     fn get_and_update_head(&mut self) -> Point {
-        let mut head_pos = &mut self.pos[0];
+        let head_pos = &mut self.pos[0];
         let previous_head = Point {
             y: head_pos.y,
             x: head_pos.x
@@ -72,15 +96,8 @@ impl Snake {
 
         head_pos.move_to(&self.direction);
 
-        if head_pos.y >= self.screen_height {
-            head_pos.y = 1;
-        } else if head_pos.y < 1 {
-            head_pos.y = self.screen_height - 1;
-        }
-        if head_pos.x >= self.screen_width {
-            head_pos.x = 2
-        } else if head_pos.x < 2 {
-            head_pos.x = self.screen_width - 2
+        if self.floating_walls_mode {
+            head_pos.teletransport(self.screen_height, self.screen_width);
         }
 
         previous_head

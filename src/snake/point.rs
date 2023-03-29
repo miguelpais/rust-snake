@@ -17,13 +17,24 @@ impl Point {
         }
     }
 
-    pub fn collides(&self, another: &Point) -> bool {
-        return self.x == another.x && self.y == another.y
+    pub fn collides_with_fence(&self, screen_height: u16, screen_width: u16) -> bool {
+        return self.y >= screen_height || self.y < 1 || self.x >= screen_width || self.x < 2 ;
     }
 
-    pub fn collides_with_first(&self, points_vector: &Vec<Point>) -> bool {
-        if points_vector.is_empty() { return false }
+    pub fn teletransport(&mut self, screen_height: u16, screen_width: u16) {
+            if self.y >= screen_height {
+                self.y = 1;
+            } else if self.y < 1 {
+                self.y = screen_height - 1;
+            }
+            if self.x >= screen_width {
+                self.x = 2
+            } else if self.x < 2 {
+                self.x = screen_width - 2
+            }
+    }
 
-        points_vector[0].collides(self)
+    pub fn collides(&self, another: &Point) -> bool {
+        return self.x == another.x && self.y == another.y
     }
 }

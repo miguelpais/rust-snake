@@ -2,14 +2,14 @@ mod util;
 mod game;
 mod snake;
 
-const SCREEN_SIZE:u16 = 40;
+const SCREEN_SIZE:u16 = 26;
 const INITIAL_SNAKE_LENGTH: u8 = 10;
 const FRAMES_PER_SECOND: u64 = 8;
-const INPUT_CAPTURING_WINDOW_MS: u64 = 3;
+const FLOATING_WALLS: bool = false;
 
 fn main() {
     game::start(SCREEN_SIZE,
                 INITIAL_SNAKE_LENGTH,
                 FRAMES_PER_SECOND,
-                INPUT_CAPTURING_WINDOW_MS);
+                FLOATING_WALLS);
 }

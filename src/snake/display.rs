@@ -46,6 +46,7 @@ pub fn draw_score(score: u16, screen_height: u16) {
     let mut stdout = io::stdout();
     stdout.queue(MoveTo(0, screen_height + 2)).unwrap();
     print!("Score: {}", score);
+    stdout.queue(MoveTo(0, 300)).unwrap();
     stdout.flush().unwrap();
 }
 
@@ -89,18 +90,5 @@ pub fn erase_at_position(y: u16, x: u16) {
 
     stdout.queue(MoveTo(x, y)).unwrap();
     print!(" ");
-    stdout.flush().unwrap();
-}
-
-pub fn move_cursor_to_empty_space() {
-    let mut stdout = io::stdout();
-    stdout.queue(MoveTo(0, 100)).unwrap();
-    stdout.flush().unwrap();
-}
-
-pub fn erase_input() {
-    let mut stdout = io::stdout();
-    stdout.queue(MoveTo(0, 100)).unwrap();
-    print!("     ");
     stdout.flush().unwrap();
 }

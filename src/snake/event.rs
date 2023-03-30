@@ -14,6 +14,7 @@ pub fn event_loop(tx: Sender<Command>) {
     loop {
         {
             if let Some(command) = capture_command() {
+                display::erase_input();
                 tx.send(command).unwrap();
             }
         }

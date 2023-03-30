@@ -92,3 +92,11 @@ pub fn erase_at_position(y: u16, x: u16) {
     print!(" ");
     stdout.flush().unwrap();
 }
+
+pub fn erase_input() {
+    let mut stdout = io::stdout();
+
+    stdout.queue(MoveTo(0, 300)).unwrap();
+    print!("           ");
+    stdout.flush().unwrap();
+}

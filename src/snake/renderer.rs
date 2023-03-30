@@ -88,7 +88,7 @@ impl Renderer {
 
             display::draw_food(&self.food);
             display::draw_snake(&self.snake);
-            display::draw_score(self.score);
+            display::draw_score(self.score, self.screen_height);
         }
     }
 

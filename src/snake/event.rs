@@ -6,13 +6,16 @@ use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use crossterm::event::{read, Event, KeyCode, poll};
 
 use crate::snake::command::Command;
+use crate::snake::display;
 
 const INPUT_CAPTURING_WINDOW_MS: u64 = 3;
 
 pub fn event_loop(tx: Sender<Command>) {
     loop {
+        display::move_cursor_to_empty_space();
         {
             if let Some(command) = capture_command() {
+                display::erase_input();
                 tx.send(command).unwrap();
             }
         }

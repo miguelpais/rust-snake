@@ -2,9 +2,9 @@ use std::io;
 use std::io::Write;
 
 use crossterm::{
-    cursor::MoveTo,
+    cursor::{MoveTo, Hide},
     style::{Color, SetBackgroundColor, SetForegroundColor},
-    terminal::{Clear, ClearType},
+    terminal::{Clear, ClearType, EnterAlternateScreen},
     QueueableCommand,
 };
 
@@ -15,6 +15,8 @@ use crate::snake::fence::{Fence, FenceRenderer};
 
 pub fn init(screen_height: u16, screen_width: u16, floating_walls_mode: bool) {
     let mut stdout = io::stdout();
+    stdout.queue(EnterAlternateScreen).unwrap();
+    stdout.queue(Hide).unwrap();
     stdout.queue(SetBackgroundColor(Color::Black)).unwrap();
     stdout.queue(Clear(ClearType::All)).unwrap();
     stdout.queue(SetBackgroundColor(Color::Black)).unwrap();
@@ -36,20 +38,22 @@ pub fn draw_snake(snake: &Snake) {
         stdout.queue(MoveTo(pos.x, pos.y)).unwrap();
         print!("{}", Direction::NONE.to_string());
     }
-    stdout.queue(MoveTo(snake.screen_width + 1, snake.screen_height + 1)).unwrap();
+
     stdout.flush().unwrap();
 }
 
-pub fn draw_score(score: u16) {
+pub fn draw_score(score: u16, screen_height: u16) {
     let mut stdout = io::stdout();
-    stdout.queue(MoveTo(0, 100)).unwrap();
+    stdout.queue(MoveTo(0, screen_height + 2)).unwrap();
     print!("Score: {}", score);
+    stdout.flush().unwrap();
 }
 
 pub fn draw_food(beer: &Food) {
     let mut stdout = io::stdout();
     stdout.queue(MoveTo(beer.pos.x, beer.pos.y)).unwrap();
     print!("{}", beer.to_string());
+    stdout.flush().unwrap();
 }
 
 pub fn draw_fence(start_y: u16, y_max: u16, start_x: u16, x_max: u16, fence_renderer: Box<dyn FenceRenderer>) {
@@ -77,6 +81,7 @@ pub fn draw_fence(start_y: u16, y_max: u16, start_x: u16, x_max: u16, fence_rend
         stdout.queue(MoveTo(x_max, i)).unwrap();
         print!("{}", fence_renderer.vertical_wall());
     }
+    stdout.flush().unwrap();
 }
 
 pub fn erase_at_position(y: u16, x: u16) {
@@ -84,4 +89,18 @@ pub fn erase_at_position(y: u16, x: u16) {
 
     stdout.queue(MoveTo(x, y)).unwrap();
     print!(" ");
+    stdout.flush().unwrap();
+}
+
+pub fn move_cursor_to_empty_space() {
+    let mut stdout = io::stdout();
+    stdout.queue(MoveTo(0, 100)).unwrap();
+    stdout.flush().unwrap();
+}
+
+pub fn erase_input() {
+    let mut stdout = io::stdout();
+    stdout.queue(MoveTo(0, 100)).unwrap();
+    print!("     ");
+    stdout.flush().unwrap();
 }
